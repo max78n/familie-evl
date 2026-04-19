@@ -60,11 +60,11 @@ export default function CalendarScreen() {
       {/* Calendar grid */}
       <div className="card" style={{ margin:'0 20px', borderRadius:'var(--radius-lg)' }}>
         {/* Weekday names */}
-        <div style={{ display:'grid', gridTemplateColumns:'repeat(7,1fr)', padding:'8px 4px 4px' }}>
+        <div style={{ display:'flex', flexWrap:'wrap', padding:'8px 4px 4px' }}>
           {DAYS.map(d => <div key={d} style={{ textAlign:'center', fontSize:11, fontWeight:700, color:'var(--text-muted)', paddingBottom:4 }}>{d}</div>)}
         </div>
         {/* Day cells */}
-        <div style={{ display:'grid', gridTemplateColumns:'repeat(7,1fr)', padding:'0 4px 8px', gap:2 }}>
+        <div style={{ isplay:'flex', flexWrap:'wrap', padding:'0 4px 8px', gap:2 }}>
           {calDays.map((day, i) => {
             if (!day) return <div key={`p${i}`} />
             const ds = format(day, 'yyyy-MM-dd')
@@ -76,7 +76,7 @@ export default function CalendarScreen() {
               <div key={ds} onClick={() => setSelectedDate(ds)}
   style={{
     display:'flex', flexDirection:'column', alignItems:'center', justifyContent:'center',
-    aspectRatio:'0.85', borderRadius:8, cursor:'pointer', touchAction: 'manipulation',
+    width:'14.28%', aspectRatio:'0.85', borderRadius:8, cursor:'pointer', touchAction: 'manipulation',
                   background: isSel ? 'var(--navy)' : isTod ? 'var(--amber-light)' : 'transparent',
                   transition:'background 0.1s',
                 }}>

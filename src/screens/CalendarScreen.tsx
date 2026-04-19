@@ -74,9 +74,9 @@ export default function CalendarScreen() {
             const memberColors = Array.from(new Set(evs.flatMap(e => e.memberIds))).slice(0,3).map(id => MEMBER_MAP[id as MemberId]?.color)
             return (
               <div key={ds} onClick={() => setSelectedDate(ds)}
-                style={{
-                  display:'flex', flexDirection:'column', alignItems:'center', justifyContent:'center',
-                  aspectRatio:'0.85', borderRadius:8, cursor:'pointer',
+  style={{
+    display:'flex', flexDirection:'column', alignItems:'center', justifyContent:'center',
+    aspectRatio:'0.85', borderRadius:8, cursor:'pointer', touchAction: 'manipulation',
                   background: isSel ? 'var(--navy)' : isTod ? 'var(--amber-light)' : 'transparent',
                   transition:'background 0.1s',
                 }}>

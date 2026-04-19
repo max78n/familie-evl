@@ -60,7 +60,7 @@ export default function CalendarScreen() {
             <div key={d} style={{ width:'14.28%', textAlign:'center', fontSize:11, fontWeight:700, color:'var(--text-muted)', paddingBottom:4 }}>{d}</div>
           ))}
         </div>
-        <div style={{ display:'flex', flexWrap:'wrap' as const, padding:'0 4px 8px' }}>
+        <div className="cal-grid" style={{ padding:'0 4px 8px' }}>
           {calDays.map((day, i) => {
             if (!day) return <div key={`p${i}`} style={{ width:'14.28%', aspectRatio:'0.85' }} />
             const ds = format(day, 'yyyy-MM-dd')
@@ -69,7 +69,7 @@ export default function CalendarScreen() {
             const isTod = isToday(day)
             const memberColors = Array.from(new Set(evs.flatMap(e => e.memberIds))).slice(0,3).map(id => MEMBER_MAP[id as MemberId]?.color)
             return (
-              <div key={ds} onClick={() => setSelectedDate(ds)}
+              <div key={ds} className="cal-cell" onClick={() => setSelectedDate(ds)}
                 style={{
                   width:'14.28%', display:'flex', flexDirection:'column', alignItems:'center', justifyContent:'center',
                   aspectRatio:'0.85', borderRadius:8, cursor:'pointer', touchAction:'manipulation' as const,

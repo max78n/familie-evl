@@ -241,3 +241,17 @@ body {
 }
 .sq-check.done { background: var(--navy-mid); border-color: var(--navy-mid); }
 .sq-check.done::after { content: '✓'; color: #fff; font-size: 12px; font-weight: 700; }
+/* Android kalender fix */
+.cal-grid {
+  display: flex !important;
+  flex-wrap: wrap !important;
+  width: 100% !important;
+}
+.cal-cell {
+  width: 14.28% !important;
+  height: 42px !important;
+  display: flex !important;
+  flex-direction: column !important;
+  align-items: center !important;
+  justify-content: center !important;
+}

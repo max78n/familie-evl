@@ -1,4 +1,3 @@
-// src/screens/CalendarScreen.tsx
 import React, { useState, useMemo } from 'react'
 import { format, startOfMonth, endOfMonth, eachDayOfInterval, getDay,
   isToday, addMonths, subMonths, parseISO } from 'date-fns'
@@ -42,13 +41,11 @@ export default function CalendarScreen() {
 
   return (
     <div style={{ flex:1, display:'flex', flexDirection:'column', overflowY:'auto' }}>
-      {/* Header */}
       <div style={{ padding:'20px 20px 0', background:'var(--off-white)', flexShrink:0 }}>
         <div style={{ fontSize:11, fontWeight:700, color:'var(--text-muted)', letterSpacing:1, textTransform:'uppercase', marginBottom:2 }}>Familiekalender</div>
         <div style={{ fontFamily:'var(--font-display)', fontSize:32, fontWeight:900, color:'var(--navy)', letterSpacing:-1, lineHeight:1 }}>Familie E-V-L</div>
       </div>
 
-      {/* Month nav */}
       <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', padding:'16px 20px 8px' }}>
         <button onClick={() => setViewMonth(m => subMonths(m,1))} style={{ width:36, height:36, borderRadius:'var(--radius-sm)', border:'1px solid var(--border)', background:'var(--surface)', fontSize:20, cursor:'pointer', display:'flex', alignItems:'center', justifyContent:'center', color:'var(--navy)' }}>‹</button>
         <span style={{ fontFamily:'var(--font-display)', fontSize:18, fontWeight:700, color:'var(--navy)', textTransform:'capitalize' }}>
@@ -57,16 +54,15 @@ export default function CalendarScreen() {
         <button onClick={() => setViewMonth(m => addMonths(m,1))} style={{ width:36, height:36, borderRadius:'var(--radius-sm)', border:'1px solid var(--border)', background:'var(--surface)', fontSize:20, cursor:'pointer', display:'flex', alignItems:'center', justifyContent:'center', color:'var(--navy)' }}>›</button>
       </div>
 
-      {/* Calendar grid */}
       <div className="card" style={{ margin:'0 20px', borderRadius:'var(--radius-lg)' }}>
-        {/* Weekday names */}
-        <div style={{ display:'flex', flexWrap:'wrap', padding:'8px 4px 4px' }}>
-          {DAYS.map(d => <div key={d} style={{ textAlign:'center', fontSize:11, fontWeight:700, color:'var(--text-muted)', paddingBottom:4 }}>{d}</div>)}
+        <div style={{ display:'flex', flexWrap:'wrap' as const, padding:'8px 4px 4px' }}>
+          {DAYS.map(d => (
+            <div key={d} style={{ width:'14.28%', textAlign:'center', fontSize:11, fontWeight:700, color:'var(--text-muted)', paddingBottom:4 }}>{d}</div>
+          ))}
         </div>
-        {/* Day cells */}
-        <div style={{ display:'flex', flexWrap:'wrap', padding:'0 4px 8px', gap:2 }}>
+        <div style={{ display:'flex', flexWrap:'wrap' as const, padding:'0 4px 8px' }}>
           {calDays.map((day, i) => {
-            if (!day) return <div key={`p${i}`} />
+            if (!day) return <div key={`p${i}`} style={{ width:'14.28%', aspectRatio:'0.85' }} />
             const ds = format(day, 'yyyy-MM-dd')
             const evs = byDate[ds] || []
             const isSel = ds === selectedDate
@@ -74,11 +70,11 @@ export default function CalendarScreen() {
             const memberColors = Array.from(new Set(evs.flatMap(e => e.memberIds))).slice(0,3).map(id => MEMBER_MAP[id as MemberId]?.color)
             return (
               <div key={ds} onClick={() => setSelectedDate(ds)}
-  style={{
-    display:'flex', flexDirection:'column', alignItems:'center', justifyContent:'center',
-    width:'14.28%', aspectRatio:'0.85', borderRadius:8, cursor:'pointer', touchAction: 'manipulation',
+                style={{
+                  width:'14.28%', display:'flex', flexDirection:'column', alignItems:'center', justifyContent:'center',
+                  aspectRatio:'0.85', borderRadius:8, cursor:'pointer', touchAction:'manipulation' as const,
                   background: isSel ? 'var(--navy)' : isTod ? 'var(--amber-light)' : 'transparent',
-                  transition:'background 0.1s',
+                  WebkitTapHighlightColor: 'transparent',
                 }}>
                 <span style={{ fontSize:13, fontWeight: isSel||isTod ? 700 : 400, color: isSel ? '#fff' : isTod ? 'var(--navy)' : 'var(--text-primary)', lineHeight:1.2 }}>
                   {format(day,'d')}
@@ -96,7 +92,6 @@ export default function CalendarScreen() {
         </div>
       </div>
 
-      {/* Member legend */}
       <div style={{ display:'flex', justifyContent:'center', gap:16, padding:'10px 20px 4px' }}>
         {Object.values(MEMBER_MAP).map(m => (
           <div key={m.id} style={{ display:'flex', alignItems:'center', gap:5 }}>
@@ -106,7 +101,6 @@ export default function CalendarScreen() {
         ))}
       </div>
 
-      {/* Events for selected day */}
       <div style={{ padding:'4px 20px 0', flex:1 }}>
         <div className="section-label">{selLabel}</div>
         {selEvents.length === 0 ? (
@@ -146,11 +140,3 @@ export default function CalendarScreen() {
             )
           })
         )}
-        <button className="btn-ghost" onClick={() => setShowAdd(true)}>+ Legg til hendelse</button>
-      </div>
-
-      <div style={{ height:24 }} />
-      {showAdd && <AddEventModal onClose={() => setShowAdd(false)} />}
-    </div>
-  )
-}

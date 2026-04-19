@@ -3,7 +3,7 @@ import React, { useState } from 'react'
 import { format, addDays } from 'date-fns'
 import { useStore } from '@/store'
 import { MEMBERS } from '@/utils/members'
-import { mockVigiloParse } from '@/utils/vigiloParser'
+import { parseVigiloPDF, mockVigiloParse } from '@/utils/vigiloParser'
 import type { MemberId } from '@/types'
 
 export default function ConnectScreen() {
@@ -13,15 +13,29 @@ export default function ConnectScreen() {
     juni: true, max: true, finn: false, felix: false
   })
 
-  const handleVigiloUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+const handleVigiloUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0]
     if (!file) return
     setUploading(true)
 
-    // Simulate parsing delay
-    await new Promise(r => setTimeout(r, 1200))
-
-    const result = mockVigiloParse(file.name)
+    // Les PDF-tekst
+    let result
+    try {
+      const arrayBuffer = await file.arrayBuffer()
+      const pdfjsLib = await import('pdfjs-dist')
+      pdfjsLib.GlobalWorkerOptions.workerSrc = `https://unpkg.com/pdfjs-dist@5.6.205/build/pdf.worker.min.mjs`
+      const pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise
+      let fullText = ''
+      for (let i = 1; i <= pdf.numPages; i++) {
+        const page = await pdf.getPage(i)
+        const content = await page.getTextContent()
+        fullText += content.items.map((item: any) => item.str).join('\n')
+      }
+      result = parseVigiloPDF(fullText, file.name)
+    } catch (err) {
+      console.warn('PDF-lesing feilet, bruker mock:', err)
+      result = mockVigiloParse(file.name)
+    }
     addEventsFromVigilo(result.events)
     addTasksFromVigilo(result.tasks)
     addVigiloDoc({

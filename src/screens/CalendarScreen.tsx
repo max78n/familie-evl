@@ -64,7 +64,7 @@ export default function CalendarScreen() {
           {DAYS.map(d => <div key={d} style={{ textAlign:'center', fontSize:11, fontWeight:700, color:'var(--text-muted)', paddingBottom:4 }}>{d}</div>)}
         </div>
         {/* Day cells */}
-        <div style={{ isplay:'flex', flexWrap:'wrap', padding:'0 4px 8px', gap:2 }}>
+        <div style={{ display:'flex', flexWrap:'wrap', padding:'0 4px 8px', gap:2 }}>
           {calDays.map((day, i) => {
             if (!day) return <div key={`p${i}`} />
             const ds = format(day, 'yyyy-MM-dd')

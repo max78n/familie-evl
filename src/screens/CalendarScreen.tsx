@@ -140,3 +140,11 @@ export default function CalendarScreen() {
             )
           })
         )}
+        <button className="btn-ghost" onClick={() => setShowAdd(true)}>+ Legg til hendelse</button>
+      </div>
+
+      <div style={{ height:24 }} />
+      {showAdd && <AddEventModal onClose={() => setShowAdd(false)} />}
+    </div>
+  )
+}

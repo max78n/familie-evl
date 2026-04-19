@@ -1,61 +1,11 @@
-// src/store/index.ts
 import { create } from 'zustand'
-import { persist } from 'zustand/middleware'
 import { format, addDays } from 'date-fns'
-import type { CalEvent, Task, Meal, ShoppingItem, VigiloDoc, MemberId, TaskCat, Priority, MealType } from '@/types'
+import { supabase } from '@/utils/supabase'
+import type { CalEvent, Task, Meal, ShoppingItem, VigiloDoc, MemberId } from '@/types'
 
 const TODAY = format(new Date(), 'yyyy-MM-dd')
 const d = (n: number) => format(addDays(new Date(), n), 'yyyy-MM-dd')
-
 const uid = () => Math.random().toString(36).slice(2, 9)
-
-const SEED_EVENTS: CalEvent[] = [
-  { id: 'e1', title: 'Fotballtrening – Finn', date: TODAY, startTime: '16:00', endTime: '17:30', memberIds: ['finn'], source: 'outlook', location: 'Idrettshallen' },
-  { id: 'e2', title: 'Foreldremøte', date: TODAY, startTime: '18:30', endTime: '20:00', memberIds: ['juni', 'max'], source: 'vigilo', location: 'Barneskolen' },
-  { id: 'e3', title: 'Tannlege – Felix', date: d(2), startTime: '10:00', memberIds: ['felix', 'juni'], source: 'outlook', location: 'Tannlegekontoret' },
-  { id: 'e4', title: 'Svømmetime – Finn', date: d(3), startTime: '15:30', memberIds: ['finn'], source: 'vigilo' },
-  { id: 'e5', title: 'Middag hos bestemor', date: d(4), startTime: '17:00', memberIds: ['juni', 'max', 'finn', 'felix'], source: 'manuell' },
-  { id: 'e6', title: 'Legesjekk – Juni', date: d(6), startTime: '09:15', memberIds: ['juni'], source: 'outlook' },
-  { id: 'e7', title: 'Bursdagsselskap – Felix', date: d(8), startTime: '14:00', memberIds: ['felix'], source: 'manuell', location: 'Lekeparken' },
-  { id: 'e8', title: 'Arbeidsmøte – Max', date: d(1), startTime: '09:00', endTime: '11:00', memberIds: ['max'], source: 'outlook' },
-]
-
-const SEED_TASKS: Task[] = [
-  { id: 't1', title: 'Støvsuge stue og soverom', category: 'husarbeid', assignedTo: ['juni'], done: false, priority: 'middels', createdAt: TODAY },
-  { id: 't2', title: 'Handle inn matvarene', category: 'husarbeid', assignedTo: ['max'], done: true, priority: 'høy', createdAt: TODAY },
-  { id: 't3', title: 'Tømme oppvaskmaskinen', category: 'husarbeid', assignedTo: ['finn'], done: false, priority: 'lav', createdAt: TODAY },
-  { id: 't4', title: 'Vaske klær (mørke)', category: 'husarbeid', assignedTo: ['felix'], done: false, priority: 'middels', createdAt: TODAY },
-  { id: 't5', title: 'Rydde barnerom', category: 'husarbeid', assignedTo: ['finn', 'felix'], done: true, priority: 'lav', createdAt: TODAY },
-  { id: 't6', title: 'Ta ut søpla', category: 'husarbeid', assignedTo: ['max'], done: false, priority: 'middels', createdAt: TODAY },
-  { id: 't7', title: 'Levere samtykkeskjema – Finn', category: 'skole', assignedTo: ['juni'], done: false, priority: 'høy', createdAt: TODAY, dueDate: TODAY },
-  { id: 't8', title: 'Kjøpe pennal til Felix', category: 'skole', assignedTo: ['max'], done: false, priority: 'middels', createdAt: TODAY },
-  { id: 't9', title: 'Hente Finn sine gymklær', category: 'skole', assignedTo: ['juni'], done: true, priority: 'lav', createdAt: TODAY },
-]
-
-const SEED_MEALS: Meal[] = [
-  { id: 'm1', date: TODAY, type: 'frokost', name: 'Havregrøt med bær' },
-  { id: 'm2', date: TODAY, type: 'lunsj', name: 'Brødskive med pålegg' },
-  { id: 'm3', date: TODAY, type: 'middag', name: 'Kyllingsuppe', notes: 'Dobbel porsjon – frys rester' },
-  { id: 'm4', date: d(1), type: 'middag', name: 'Tacos' },
-  { id: 'm5', date: d(2), type: 'middag', name: 'Pasta Bolognese' },
-  { id: 'm6', date: d(3), type: 'middag', name: 'Laksfilet med grønnsaker' },
-  { id: 'm7', date: d(4), type: 'middag', name: 'Pølser og potetmos' },
-  { id: 'm8', date: d(5), type: 'middag', name: 'Hjemmelaget pizza' },
-  { id: 'm9', date: d(6), type: 'middag', name: 'Karbonadedeig med ris' },
-]
-
-const SEED_SHOPPING: ShoppingItem[] = [
-  { id: 's1', name: 'Kyllingfilet 800g', category: 'Kjøtt', done: false, addedBy: 'juni' },
-  { id: 's2', name: 'Havregryn', category: 'Frokost', done: true, addedBy: 'max' },
-  { id: 's3', name: 'Gulrøtter', category: 'Grønnsaker', done: false },
-  { id: 's4', name: 'Melk 1.5l', category: 'Meieri', done: true },
-  { id: 's5', name: 'Tortillalefser', category: 'Brød', done: false },
-  { id: 's6', name: 'Kjøttdeig 500g', category: 'Kjøtt', done: false },
-  { id: 's7', name: 'Spaghetti', category: 'Tørrmat', done: false },
-  { id: 's8', name: 'Hermetiske tomater x2', category: 'Tørrmat', done: false },
-  { id: 's9', name: 'Rømme', category: 'Meieri', done: false },
-  { id: 's10', name: 'Laksefilet 600g', category: 'Fisk', done: false },
-]
 
 interface Store {
   events: CalEvent[]
@@ -65,63 +15,176 @@ interface Store {
   vigiloDocs: VigiloDoc[]
   selectedDate: string
   activeTab: string
-
+  isLoading: boolean
   setSelectedDate: (d: string) => void
   setActiveTab: (t: string) => void
-
-  addEvent: (e: Omit<CalEvent, 'id'>) => void
-  deleteEvent: (id: string) => void
-
-  addTask: (t: Omit<Task, 'id' | 'createdAt'>) => void
-  toggleTask: (id: string) => void
-  deleteTask: (id: string) => void
-
-  addMeal: (m: Omit<Meal, 'id'>) => void
-  deleteMeal: (id: string) => void
-
-  addShoppingItem: (i: Omit<ShoppingItem, 'id'>) => void
-  toggleShoppingItem: (id: string) => void
-  deleteShoppingItem: (id: string) => void
-  clearBought: () => void
-
+  loadAll: () => Promise<void>
+  addEvent: (e: Omit<CalEvent, 'id'>) => Promise<void>
+  deleteEvent: (id: string) => Promise<void>
+  addTask: (t: Omit<Task, 'id' | 'createdAt'>) => Promise<void>
+  toggleTask: (id: string) => Promise<void>
+  deleteTask: (id: string) => Promise<void>
+  addMeal: (m: Omit<Meal, 'id'>) => Promise<void>
+  deleteMeal: (id: string) => Promise<void>
+  addShoppingItem: (i: Omit<ShoppingItem, 'id'>) => Promise<void>
+  toggleShoppingItem: (id: string) => Promise<void>
+  deleteShoppingItem: (id: string) => Promise<void>
+  clearBought: () => Promise<void>
   addVigiloDoc: (doc: VigiloDoc) => void
-  addEventsFromVigilo: (evs: Omit<CalEvent, 'id'>[]) => void
-  addTasksFromVigilo: (tasks: Omit<Task, 'id' | 'createdAt'>[]) => void
+  addEventsFromVigilo: (evs: Omit<CalEvent, 'id'>[]) => Promise<void>
+  addTasksFromVigilo: (tasks: Omit<Task, 'id' | 'createdAt'>[]) => Promise<void>
+  subscribeToChanges: () => () => void
 }
 
-export const useStore = create<Store>()(
-  persist(
-    (set) => ({
-      events: SEED_EVENTS,
-      tasks: SEED_TASKS,
-      meals: SEED_MEALS,
-      shopping: SEED_SHOPPING,
-      vigiloDocs: [],
-      selectedDate: TODAY,
-      activeTab: 'kalender',
+function rowToEvent(r: any): CalEvent {
+  return { id: r.id, title: r.title, date: r.date, startTime: r.start_time, endTime: r.end_time, allDay: r.all_day, location: r.location, memberIds: r.member_ids || [], source: r.source, vigiloFile: r.vigilo_file }
+}
+function rowToTask(r: any): Task {
+  return { id: r.id, title: r.title, category: r.category, assignedTo: r.assigned_to || [], dueDate: r.due_date, done: r.done, priority: r.priority, createdAt: r.created_at }
+}
+function rowToMeal(r: any): Meal {
+  return { id: r.id, date: r.date, type: r.type, name: r.name, notes: r.notes }
+}
+function rowToShopping(r: any): ShoppingItem {
+  return { id: r.id, name: r.name, category: r.category, quantity: r.quantity, done: r.done, addedBy: r.added_by }
+}
 
-      setSelectedDate: (selectedDate) => set({ selectedDate }),
-      setActiveTab: (activeTab) => set({ activeTab }),
+export const useStore = create<Store>()((set, get) => ({
+  events: [], tasks: [], meals: [], shopping: [], vigiloDocs: [],
+  selectedDate: TODAY, activeTab: 'kalender', isLoading: true,
 
-      addEvent: (e) => set((s) => ({ events: [...s.events, { ...e, id: uid() }] })),
-      deleteEvent: (id) => set((s) => ({ events: s.events.filter((e) => e.id !== id) })),
+  setSelectedDate: (selectedDate) => set({ selectedDate }),
+  setActiveTab: (activeTab) => set({ activeTab }),
 
-      addTask: (t) => set((s) => ({ tasks: [...s.tasks, { ...t, id: uid(), createdAt: TODAY }] })),
-      toggleTask: (id) => set((s) => ({ tasks: s.tasks.map((t) => t.id === id ? { ...t, done: !t.done } : t) })),
-      deleteTask: (id) => set((s) => ({ tasks: s.tasks.filter((t) => t.id !== id) })),
+  loadAll: async () => {
+    set({ isLoading: true })
+    const [e, t, m, s] = await Promise.all([
+      supabase.from('events').select('*').order('date'),
+      supabase.from('tasks').select('*').order('created_at'),
+      supabase.from('meals').select('*').order('date'),
+      supabase.from('shopping').select('*').order('created_at'),
+    ])
+    const events = (e.data || []).map(rowToEvent)
+    const tasks = (t.data || []).map(rowToTask)
+    const meals = (m.data || []).map(rowToMeal)
+    const shopping = (s.data || []).map(rowToShopping)
 
-      addMeal: (m) => set((s) => ({ meals: [...s.meals, { ...m, id: uid() }] })),
-      deleteMeal: (id) => set((s) => ({ meals: s.meals.filter((m) => m.id !== id) })),
+    if (events.length === 0) await seedEvents()
+    if (tasks.length === 0) await seedTasks()
+    if (meals.length === 0) await seedMeals()
+    if (shopping.length === 0) await seedShopping()
 
-      addShoppingItem: (i) => set((s) => ({ shopping: [...s.shopping, { ...i, id: uid() }] })),
-      toggleShoppingItem: (id) => set((s) => ({ shopping: s.shopping.map((i) => i.id === id ? { ...i, done: !i.done } : i) })),
-      deleteShoppingItem: (id) => set((s) => ({ shopping: s.shopping.filter((i) => i.id !== id) })),
-      clearBought: () => set((s) => ({ shopping: s.shopping.filter((i) => !i.done) })),
+    const [e2, t2, m2, s2] = await Promise.all([
+      supabase.from('events').select('*').order('date'),
+      supabase.from('tasks').select('*').order('created_at'),
+      supabase.from('meals').select('*').order('date'),
+      supabase.from('shopping').select('*').order('created_at'),
+    ])
+    set({
+      events: (e2.data||[]).map(rowToEvent),
+      tasks: (t2.data||[]).map(rowToTask),
+      meals: (m2.data||[]).map(rowToMeal),
+      shopping: (s2.data||[]).map(rowToShopping),
+      isLoading: false
+    })
+  },
 
-      addVigiloDoc: (doc) => set((s) => ({ vigiloDocs: [doc, ...s.vigiloDocs] })),
-      addEventsFromVigilo: (evs) => set((s) => ({ events: [...s.events, ...evs.map((e) => ({ ...e, id: uid() }))] })),
-      addTasksFromVigilo: (tasks) => set((s) => ({ tasks: [...s.tasks, ...tasks.map((t) => ({ ...t, id: uid(), createdAt: TODAY }))] })),
-    }),
-    { name: 'familie-evl-v1' }
-  )
-)
+  subscribeToChanges: () => {
+    const channel = supabase.channel('familie-evl-changes')
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'events' }, async () => {
+        const { data } = await supabase.from('events').select('*').order('date')
+        set({ events: (data||[]).map(rowToEvent) })
+      })
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'tasks' }, async () => {
+        const { data } = await supabase.from('tasks').select('*').order('created_at')
+        set({ tasks: (data||[]).map(rowToTask) })
+      })
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'meals' }, async () => {
+        const { data } = await supabase.from('meals').select('*').order('date')
+        set({ meals: (data||[]).map(rowToMeal) })
+      })
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'shopping' }, async () => {
+        const { data } = await supabase.from('shopping').select('*').order('created_at')
+        set({ shopping: (data||[]).map(rowToShopping) })
+      })
+      .subscribe()
+    return () => { supabase.removeChannel(channel) }
+  },
+
+  addEvent: async (e) => {
+    await supabase.from('events').insert({ id: uid(), title: e.title, date: e.date, start_time: e.startTime, end_time: e.endTime, all_day: e.allDay, location: e.location, member_ids: e.memberIds, source: e.source, vigilo_file: e.vigiloFile })
+  },
+  deleteEvent: async (id) => { await supabase.from('events').delete().eq('id', id) },
+
+  addTask: async (t) => {
+    await supabase.from('tasks').insert({ id: uid(), title: t.title, category: t.category, assigned_to: t.assignedTo, due_date: t.dueDate, done: false, priority: t.priority, created_at: TODAY })
+  },
+  toggleTask: async (id) => {
+    const task = get().tasks.find(t => t.id === id)
+    if (!task) return
+    await supabase.from('tasks').update({ done: !task.done }).eq('id', id)
+  },
+  deleteTask: async (id) => { await supabase.from('tasks').delete().eq('id', id) },
+
+  addMeal: async (m) => {
+    await supabase.from('meals').insert({ id: uid(), date: m.date, type: m.type, name: m.name, notes: m.notes })
+  },
+  deleteMeal: async (id) => { await supabase.from('meals').delete().eq('id', id) },
+
+  addShoppingItem: async (i) => {
+    await supabase.from('shopping').insert({ id: uid(), name: i.name, category: i.category, quantity: i.quantity, done: false, added_by: i.addedBy })
+  },
+  toggleShoppingItem: async (id) => {
+    const item = get().shopping.find(i => i.id === id)
+    if (!item) return
+    await supabase.from('shopping').update({ done: !item.done }).eq('id', id)
+  },
+  deleteShoppingItem: async (id) => { await supabase.from('shopping').delete().eq('id', id) },
+  clearBought: async () => { await supabase.from('shopping').delete().eq('done', true) },
+
+  addVigiloDoc: (doc) => set(s => ({ vigiloDocs: [doc, ...s.vigiloDocs] })),
+  addEventsFromVigilo: async (evs) => {
+    await supabase.from('events').insert(evs.map(e => ({ id: uid(), title: e.title, date: e.date, start_time: e.startTime, end_time: e.endTime, all_day: e.allDay, location: e.location, member_ids: e.memberIds, source: 'vigilo', vigilo_file: e.vigiloFile })))
+  },
+  addTasksFromVigilo: async (tasks) => {
+    await supabase.from('tasks').insert(tasks.map(t => ({ id: uid(), title: t.title, category: t.category, assigned_to: t.assignedTo, due_date: t.dueDate, done: false, priority: t.priority, created_at: TODAY })))
+  },
+}))
+
+async function seedEvents() {
+  await supabase.from('events').insert([
+    { id: uid(), title: 'Fotballtrening – Finn', date: TODAY, start_time: '16:00', end_time: '17:30', member_ids: ['finn'], source: 'outlook', location: 'Idrettshallen', all_day: false },
+    { id: uid(), title: 'Foreldremøte', date: TODAY, start_time: '18:30', end_time: '20:00', member_ids: ['juni', 'max'], source: 'vigilo', location: 'Barneskolen', all_day: false },
+    { id: uid(), title: 'Tannlege – Felix', date: d(2), start_time: '10:00', member_ids: ['felix', 'juni'], source: 'outlook', location: 'Tannlegekontoret', all_day: false },
+    { id: uid(), title: 'Middag hos bestemor', date: d(4), start_time: '17:00', member_ids: ['juni', 'max', 'finn', 'felix'], source: 'manuell', all_day: false },
+  ])
+}
+async function seedTasks() {
+  await supabase.from('tasks').insert([
+    { id: uid(), title: 'Støvsuge stue og soverom', category: 'husarbeid', assigned_to: ['juni'], done: false, priority: 'middels', created_at: TODAY },
+    { id: uid(), title: 'Handle inn matvarene', category: 'husarbeid', assigned_to: ['max'], done: false, priority: 'høy', created_at: TODAY },
+    { id: uid(), title: 'Tømme oppvaskmaskinen', category: 'husarbeid', assigned_to: ['finn'], done: false, priority: 'lav', created_at: TODAY },
+    { id: uid(), title: 'Ta ut søpla', category: 'husarbeid', assigned_to: ['max'], done: false, priority: 'middels', created_at: TODAY },
+    { id: uid(), title: 'Levere samtykkeskjema – Finn', category: 'skole', assigned_to: ['juni'], done: false, priority: 'høy', created_at: TODAY, due_date: TODAY },
+  ])
+}
+async function seedMeals() {
+  await supabase.from('meals').insert([
+    { id: uid(), date: TODAY, type: 'frokost', name: 'Havregrøt med bær' },
+    { id: uid(), date: TODAY, type: 'middag', name: 'Kyllingsuppe', notes: 'Dobbel porsjon – frys rester' },
+    { id: uid(), date: d(1), type: 'middag', name: 'Tacos' },
+    { id: uid(), date: d(2), type: 'middag', name: 'Pasta Bolognese' },
+    { id: uid(), date: d(3), type: 'middag', name: 'Laksfilet med grønnsaker' },
+    { id: uid(), date: d(4), type: 'middag', name: 'Pølser og potetmos' },
+  ])
+}
+async function seedShopping() {
+  await supabase.from('shopping').insert([
+    { id: uid(), name: 'Kyllingfilet 800g', category: 'Kjøtt', done: false, added_by: 'juni' },
+    { id: uid(), name: 'Gulrøtter', category: 'Grønnsaker', done: false },
+    { id: uid(), name: 'Melk 1.5l', category: 'Meieri', done: false },
+    { id: uid(), name: 'Tortillalefser', category: 'Brød', done: false },
+    { id: uid(), name: 'Kjøttdeig 500g', category: 'Kjøtt', done: false },
+    { id: uid(), name: 'Spaghetti', category: 'Tørrmat', done: false },
+  ])
+}

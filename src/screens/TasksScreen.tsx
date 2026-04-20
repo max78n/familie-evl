@@ -41,7 +41,7 @@ export default function TasksScreen() {
   }, [tasks])
 
   return (
-    <div style={{ flex:1, display:'flex', flexDirection:'column', overflowY:'auto' }}>
+    <div style={{ flex:1, display:'flex', flexDirection:'column', overflowY:'auto', overflowX:'hidden', maxWidth:'100vw' }}>
       {/* Header */}
       <div style={{ padding:'20px 20px 14px', flexShrink:0 }}>
         <div style={{ fontFamily:'var(--font-display)', fontSize:32, fontWeight:900, color:'var(--navy)', letterSpacing:-1, marginBottom:14 }}>Oppgaver</div>

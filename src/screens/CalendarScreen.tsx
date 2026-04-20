@@ -6,11 +6,29 @@ import { useStore } from '@/store'
 import { MEMBER_MAP, SOURCE_COLORS, SOURCE_LABELS } from '@/utils/members'
 import type { CalEvent, MemberId } from '@/types'
 import AddEventModal from '@/components/AddEventModal'
-
+import { signInWithGoogle, fetchGoogleCalendarEvents } from '@/utils/googleCalendar'
 const DAYS = ['Ma','Ti','On','To','Fr','Lø','Sø']
 
 export default function CalendarScreen() {
-  const { events, selectedDate, setSelectedDate } = useStore()
+  const { events, selectedDate, setSelectedDate, addEventsFromVigilo } = useStore()
+const [syncing, setSyncing] = useState(false)
+
+const handleGoogleSync = async () => {
+  setSyncing(true)
+  try {
+    const success = await signInWithGoogle()
+    if (success) {
+      const googleEvents = await fetchGoogleCalendarEvents(30)
+      if (googleEvents.length > 0) {
+        await addEventsFromVigilo(googleEvents)
+      }
+    }
+  } catch {
+    alert('Kunne ikke synkronisere. Prøv igjen.')
+  } finally {
+    setSyncing(false)
+  }
+}
   const [viewMonth, setViewMonth] = useState(new Date())
   const [showAdd, setShowAdd] = useState(false)
 
@@ -42,8 +60,14 @@ export default function CalendarScreen() {
   return (
     <div style={{ flex:1, display:'flex', flexDirection:'column', overflowY:'auto' }}>
       <div style={{ padding:'20px 20px 0', background:'var(--off-white)', flexShrink:0 }}>
-        <div style={{ fontSize:11, fontWeight:700, color:'var(--text-muted)', letterSpacing:1, textTransform:'uppercase', marginBottom:2 }}>Familiekalender</div>
-        <div style={{ fontFamily:'var(--font-display)', fontSize:32, fontWeight:900, color:'var(--navy)', letterSpacing:-1, lineHeight:1 }}>Familie E-V-L</div>
+        
+        <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between' }}>
+  <div style={{ fontFamily:'var(--font-display)', fontSize:32, fontWeight:900, color:'var(--navy)', letterSpacing:-1, lineHeight:1 }}>Familie E-V-L</div>
+  <button onClick={handleGoogleSync} disabled={syncing}
+    style={{ padding:'8px 14px', borderRadius:'var(--radius-full)', border:'1.5px solid var(--border)', background:'var(--surface)', fontSize:13, fontWeight:600, color:'var(--navy)', cursor:'pointer', opacity: syncing?0.6:1 }}>
+    {syncing ? '⏳' : '🔄 Sync'}
+  </button>
+</div>
       </div>
 
       <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', padding:'16px 20px 8px' }}>

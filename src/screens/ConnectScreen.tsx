@@ -4,6 +4,7 @@ import { format, addDays } from 'date-fns'
 import { useStore } from '@/store'
 import { MEMBERS } from '@/utils/members'
 import { parseVigiloPDF, mockVigiloParse } from '@/utils/vigiloParser'
+import { signInWithGoogle, signOutGoogle, isSignedIn, fetchGoogleCalendarEvents } from '@/utils/googleCalendar'
 import type { MemberId } from '@/types'
 
 export default function ConnectScreen() {
@@ -64,7 +65,32 @@ const handleVigiloUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
   }
 
   const connCount = Object.values(outlookStatus).filter(Boolean).length
+const [googleConnected, setGoogleConnected] = useState(false)
+const [googleSyncing, setGoogleSyncing] = useState(false)
 
+const handleGoogleConnect = async () => {
+  setGoogleSyncing(true)
+  try {
+    const success = await signInWithGoogle()
+    if (success) {
+      setGoogleConnected(true)
+      const events = await fetchGoogleCalendarEvents(30)
+      await addEventsFromVigilo(events)
+      alert(`✅ Google Calendar synkronisert!\n\nFant ${events.length} hendelse(r) de neste 30 dagene.`)
+    }
+  } catch (err) {
+    alert('Kunne ikke koble til Google Calendar. Prøv igjen.')
+  } finally {
+    setGoogleSyncing(false)
+  }
+}
+
+const handleGoogleDisconnect = async () => {
+  if (confirm('Koble fra Google Calendar?')) {
+    await signOutGoogle()
+    setGoogleConnected(false)
+  }
+}
   return (
     <div style={{ flex:1, overflowY:'auto' }}>
       <div style={{ padding:'20px 20px 14px' }}>
@@ -114,7 +140,44 @@ const handleVigiloUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
             </div>
           ))}
         </div>
-
+{/* ── GOOGLE CALENDAR ── */}
+<div className="section-label">Google Calendar</div>
+<div className="card" style={{ marginBottom:16 }}>
+  <div style={{ display:'flex', alignItems:'center', gap:12, padding:'14px 16px', borderBottom:'1px solid var(--border-light)' }}>
+    <div style={{ width:44, height:44, borderRadius:'var(--radius-md)', background:'#D4F0D4', display:'flex', alignItems:'center', justifyContent:'center', fontSize:22, flexShrink:0 }}>📅</div>
+    <div style={{ flex:1 }}>
+      <div style={{ fontWeight:700, fontSize:15, color:'var(--navy)' }}>Google Calendar</div>
+      <div style={{ fontSize:13, color:'var(--text-secondary)', marginTop:2 }}>
+        {googleConnected ? 'Tilkoblet og synkronisert' : 'Koble til din Google-konto'}
+      </div>
+    </div>
+    <button
+      onClick={googleConnected ? handleGoogleDisconnect : handleGoogleConnect}
+      disabled={googleSyncing}
+      style={{
+        padding:'6px 14px', borderRadius:'var(--radius-full)', border:'1.5px solid',
+        fontSize:13, fontWeight:600, cursor:'pointer', transition:'all 0.15s',
+        borderColor: googleConnected ? 'var(--success)' : 'var(--border)',
+        background: googleConnected ? 'var(--success-light)' : 'var(--off-white)',
+        color: googleConnected ? 'var(--success)' : 'var(--text-secondary)',
+        opacity: googleSyncing ? 0.6 : 1,
+      }}
+    >
+      {googleSyncing ? '⏳ Synkroniserer...' : googleConnected ? '✓ Tilkoblet' : 'Koble til'}
+    </button>
+  </div>
+  {googleConnected && (
+    <div style={{ padding:'12px 16px' }}>
+      <button
+        onClick={handleGoogleConnect}
+        disabled={googleSyncing}
+        style={{ background:'none', border:'none', color:'var(--navy-mid)', fontSize:13, fontWeight:600, cursor:'pointer', padding:0 }}
+      >
+        🔄 Synkroniser nå
+      </button>
+    </div>
+  )}
+</div>
         {/* ── VIGILO ── */}
         <div className="section-label">Vigilo – Skole-PDF</div>
         <div className="card" style={{ marginBottom:16 }}>

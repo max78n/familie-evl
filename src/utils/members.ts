@@ -30,11 +30,7 @@ export const SOURCE_LABELS: Record<string, string> = {
   manuell: 'Google',
 }
 
-export const SOURCE_COLORS: Record<string, { bg: string; text: string }> = {
-  outlook: { bg: '#D4E8FF', text: '#0055A5' },
-  vigilo:  { bg: '#FFE8D4', text: '#A03A00' },
-  manuell: { bg: '#D4F0D4', text: '#1A6B1A' },
-}
+
 
 export const SOURCE_COLORS: Record<string, { bg: string; text: string }> = {
   outlook: { bg: '#D4E8FF', text: '#0055A5' },

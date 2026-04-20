@@ -144,10 +144,18 @@ export const useStore = create<Store>()((set, get) => ({
 
   addVigiloDoc: (doc) => set(s => ({ vigiloDocs: [doc, ...s.vigiloDocs] })),
   addEventsFromVigilo: async (evs) => {
-    await supabase.from('events').insert(evs.map(e => ({ id: uid(), title: e.title, date: e.date, start_time: e.startTime, end_time: e.endTime, all_day: e.allDay, location: e.location, member_ids: e.memberIds, source: 'vigilo', vigilo_file: e.vigiloFile })))
+    const { data: existing } = await supabase.from('events').select('title, date')
+    const existingKeys = new Set((existing || []).map((e: any) => `${e.title}_${e.date}`))
+    const newEvs = evs.filter(e => !existingKeys.has(`${e.title}_${e.date}`))
+    if (newEvs.length === 0) return
+    await supabase.from('events').insert(newEvs.map(e => ({ id: uid(), title: e.title, date: e.date, start_time: e.startTime, end_time: e.endTime, all_day: e.allDay, location: e.location, member_ids: e.memberIds, source: 'vigilo', vigilo_file: e.vigiloFile })))
   },
   addTasksFromVigilo: async (tasks) => {
-    await supabase.from('tasks').insert(tasks.map(t => ({ id: uid(), title: t.title, category: t.category, assigned_to: t.assignedTo, due_date: t.dueDate, done: false, priority: t.priority, created_at: TODAY })))
+    const { data: existing } = await supabase.from('tasks').select('title')
+    const existingTitles = new Set((existing || []).map((t: any) => t.title))
+    const newTasks = tasks.filter(t => !existingTitles.has(t.title))
+    if (newTasks.length === 0) return
+    await supabase.from('tasks').insert(newTasks.map(t => ({ id: uid(), title: t.title, category: t.category, assigned_to: t.assignedTo, due_date: t.dueDate, done: false, priority: t.priority, created_at: TODAY })))
   },
 }))
 

@@ -5,33 +5,42 @@ const CLIENT_ID = import.meta.env.VITE_GOOGLE_CLIENT_ID
 const SCOPES = 'https://www.googleapis.com/auth/calendar.readonly'
 
 export function loadGoogleAPI(): Promise<void> {
-  return new Promise((resolve) => {
-    if ((window as any).gapi) { resolve(); return }
-    const script = document.createElement('script')
-    script.src = 'https://apis.google.com/js/api.js'
-    script.onload = () => {
-      (window as any).gapi.load('client:auth2', async () => {
-        await (window as any).gapi.client.init({
-          clientId: CLIENT_ID,
-          scope: SCOPES,
-          discoveryDocs: ['https://www.googleapis.com/discovery/v1/apis/calendar/v3/rest'],
-        })
-        resolve()
+  return new Promise((resolve, reject) => {
+    if ((window as any).gapi?.auth2) { resolve(); return }
+    const checkGapi = () => {
+      if (!(window as any).gapi) { reject(new Error('Google API ikke lastet')); return }
+      ;(window as any).gapi.load('client:auth2', async () => {
+        try {
+          await (window as any).gapi.client.init({
+            clientId: CLIENT_ID,
+            scope: SCOPES,
+            discoveryDocs: ['https://www.googleapis.com/discovery/v1/apis/calendar/v3/rest'],
+          })
+          resolve()
+        } catch (err) {
+          console.error('Google API init error:', err)
+          reject(err)
+        }
       })
     }
-    document.body.appendChild(script)
+    if ((window as any).gapi) {
+      checkGapi()
+    } else {
+      setTimeout(checkGapi, 1000)
+    }
   })
 }
 
 export async function signInWithGoogle(): Promise<boolean> {
-  await loadGoogleAPI()
-  const authInstance = (window as any).gapi.auth2.getAuthInstance()
-  if (authInstance.isSignedIn.get()) return true
   try {
+    await loadGoogleAPI()
+    const authInstance = (window as any).gapi.auth2.getAuthInstance()
+    if (authInstance.isSignedIn.get()) return true
     await authInstance.signIn()
     return true
-  } catch {
-    return false
+  } catch (err) {
+    console.error('Google sign in error:', err)
+    throw err
   }
 }
 

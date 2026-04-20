@@ -34,20 +34,20 @@
   --safe-bottom: env(safe-area-inset-bottom, 0px);
 }
 
-html { height: 100%; overflow: hidden; }
+html { height: 100%; overflow: hidden; max-width: 100vw; }
 body {
   font-family: var(--font-body);
   background: var(--off-white);
   color: var(--text-primary);
   height: 100%;
   overflow: hidden;
+  overflow-x: hidden;
   -webkit-font-smoothing: antialiased;
   -webkit-tap-highlight-color: transparent;
   user-select: none;
 }
 #root { height: 100%; display: flex; flex-direction: column; }
 
-/* Scrollable areas */
 .scroll-area {
   flex: 1;
   overflow-y: auto;
@@ -56,14 +56,12 @@ body {
 }
 .scroll-area::-webkit-scrollbar { display: none; }
 
-/* Cards */
 .card {
   background: var(--surface);
   border-radius: var(--radius-lg);
   box-shadow: var(--shadow-sm);
 }
 
-/* Chips */
 .chip {
   display: inline-flex;
   align-items: center;
@@ -82,7 +80,6 @@ body {
 .chip.active { background: var(--navy); border-color: var(--navy); color: #fff; }
 .chip:active { opacity: 0.7; }
 
-/* Buttons */
 .btn-primary {
   display: flex; align-items: center; justify-content: center; gap: 6px;
   width: 100%; padding: 14px;
@@ -105,7 +102,6 @@ body {
 }
 .btn-ghost:active { background: var(--surface-muted); }
 
-/* Section label */
 .section-label {
   font-size: 11px;
   font-weight: 700;
@@ -115,7 +111,6 @@ body {
   margin: 20px 0 8px;
 }
 
-/* Modal overlay */
 .modal-overlay {
   position: fixed; inset: 0; z-index: 200;
   background: rgba(26,26,46,0.5);
@@ -160,7 +155,6 @@ body {
 }
 .field-input:focus { border-color: var(--navy); }
 
-/* Tab bar */
 .tab-bar {
   display: flex;
   background: var(--surface);
@@ -188,7 +182,6 @@ body {
   padding: 4px 10px;
 }
 
-/* Pill row scrollable */
 .pill-scroll {
   display: flex; gap: 8px;
   overflow-x: auto; padding: 0 20px 4px;
@@ -196,7 +189,6 @@ body {
 }
 .pill-scroll::-webkit-scrollbar { display: none; }
 
-/* Member avatar */
 .avatar {
   width: 38px; height: 38px; border-radius: 50%;
   display: flex; align-items: center; justify-content: center;
@@ -207,14 +199,12 @@ body {
 }
 .avatar.selected { border-color: var(--amber); }
 
-/* Source badge */
 .source-badge {
   font-size: 11px; font-weight: 600;
   padding: 2px 8px; border-radius: var(--radius-full);
   flex-shrink: 0;
 }
 
-/* Animations */
 @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
 @keyframes slideUp { from { transform: translateY(100%); } to { transform: translateY(0); } }
 @keyframes fadeInUp {
@@ -223,7 +213,6 @@ body {
 }
 .fade-in-up { animation: fadeInUp 0.3s ease both; }
 
-/* Checkbox */
 .checkbox {
   width: 22px; height: 22px; border-radius: 50%;
   border: 2px solid var(--border);
@@ -240,19 +229,6 @@ body {
 }
 .sq-check.done { background: var(--navy-mid); border-color: var(--navy-mid); }
 .sq-check.done::after { content: '✓'; color: #fff; font-size: 12px; font-weight: 700; }
-/* Android kalender fix */
-.cal-grid {
-  display: flex !important;
-  flex-wrap: wrap !important;
-  width: 100% !important;
-}
-.cal-cell {
-  width: 14.28% !important;
-  height: 42px !important;
-  display: flex !important;
-  flex-direction: column !important;
-  align-items: center !important;
-  justify-content: center !important;
-}
+
 .cal-grid { display: flex !important; flex-wrap: wrap !important; width: 100% !important; }
 .cal-cell { width: 14.28% !important; min-height: 42px !important; display: flex !important; flex-direction: column !important; align-items: center !important; justify-content: center !important; cursor: pointer !important; border-radius: 8px !important; }

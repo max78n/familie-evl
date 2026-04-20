@@ -80,7 +80,7 @@ export async function fetchGoogleCalendarEvents(
       allDay: isAllDay,
       location: item.location,
       memberIds: ['max'],
-      source: 'outlook',
+      source: 'manuell',
     }
   })
 }

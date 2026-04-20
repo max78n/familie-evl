@@ -1,5 +1,4 @@
-// src/screens/TasksScreen.tsx
-import React, { useState, useMemo } from 'react'
+import React, { useState, useMemo, useEffect } from 'react'
 import { useStore } from '@/store'
 import { MEMBERS, MEMBER_MAP, PRIORITY_COLORS } from '@/utils/members'
 import type { MemberId, TaskCat, Priority } from '@/types'
@@ -13,10 +12,20 @@ const CATS: { key: TaskCat | 'alle'; label: string; icon: string }[] = [
 ]
 
 export default function TasksScreen() {
-  const { tasks, toggleTask } = useStore()
+  const { tasks, toggleTask, deleteTask } = useStore()
   const [selMember, setSelMember] = useState<MemberId|'alle'>('alle')
   const [selCat, setSelCat] = useState<TaskCat|'alle'>('alle')
   const [showAdd, setShowAdd] = useState(false)
+
+  // Auto-slett fullførte oppgaver etter 3 sekunder
+  useEffect(() => {
+    const doneTasks = tasks.filter(t => t.done)
+    if (doneTasks.length === 0) return
+    const timer = setTimeout(() => {
+      doneTasks.forEach(t => deleteTask(t.id))
+    }, 3000)
+    return () => clearTimeout(timer)
+  }, [tasks])
 
   const filtered = useMemo(() => tasks.filter(t =>
     (selMember === 'alle' || t.assignedTo.includes(selMember)) &&
@@ -51,16 +60,11 @@ export default function TasksScreen() {
 
       {/* Member filter */}
       <div className="pill-scroll" style={{ paddingBottom:8 }}>
-        <div
-          className={`chip ${selMember==='alle'?'active':''}`}
-          onClick={() => setSelMember('alle')}
-        >Alle</div>
+        <div className={`chip ${selMember==='alle'?'active':''}`} onClick={() => setSelMember('alle')}>Alle</div>
         {MEMBERS.map(m => (
           <div key={m.id} onClick={() => setSelMember(selMember===m.id?'alle':m.id)}
             style={{ display:'flex', flexDirection:'column', alignItems:'center', gap:4, cursor:'pointer', flexShrink:0 }}>
-            <div className={`avatar ${selMember===m.id?'selected':''}`} style={{ background:m.color }}>
-              {m.initials}
-            </div>
+            <div className={`avatar ${selMember===m.id?'selected':''}`} style={{ background:m.color }}>{m.initials}</div>
             <span style={{ fontSize:10, fontWeight:600, color: selMember===m.id ? 'var(--navy)':'var(--text-muted)' }}>{m.name}</span>
           </div>
         ))}
@@ -83,9 +87,10 @@ export default function TasksScreen() {
             {pending.map((t, i) => {
               const m = MEMBER_MAP[t.assignedTo[0] as MemberId]
               return (
-                <div key={t.id} className="card fade-in-up" style={{ display:'flex', marginBottom:10, animationDelay:`${i*0.04}s` }} onClick={() => toggleTask(t.id)}>
+                <div key={t.id} className="card fade-in-up" style={{ display:'flex', marginBottom:10, animationDelay:`${i*0.04}s` }}>
                   <div style={{ width:4, background:PRIORITY_COLORS[t.priority], flexShrink:0 }} />
-                  <div style={{ display:'flex', alignItems:'center', flex:1, padding:'12px 14px', gap:12 }}>
+                  <div style={{ display:'flex', alignItems:'center', flex:1, padding:'12px 14px', gap:12 }}
+                    onClick={() => toggleTask(t.id)}>
                     <div className={`checkbox ${t.done?'done':''}`} />
                     <div style={{ flex:1 }}>
                       <div style={{ fontSize:15, fontWeight:500, color:'var(--text-primary)', lineHeight:1.3 }}>{t.title}</div>
@@ -98,6 +103,11 @@ export default function TasksScreen() {
                       })}
                     </div>
                   </div>
+                  {/* Slett-knapp */}
+                  <div onClick={() => deleteTask(t.id)}
+                    style={{ display:'flex', alignItems:'center', justifyContent:'center', width:44, borderLeft:'1px solid var(--border-light)', cursor:'pointer', color:'var(--text-muted)', fontSize:18, flexShrink:0 }}>
+                    🗑️
+                  </div>
                 </div>
               )
             })}
@@ -106,18 +116,21 @@ export default function TasksScreen() {
 
         {done.length > 0 && (
           <>
-            <div className="section-label">Fullført ({done.length})</div>
-            {done.map(t => {
-              return (
-                <div key={t.id} className="card" style={{ display:'flex', marginBottom:10, opacity:0.65 }} onClick={() => toggleTask(t.id)}>
-                  <div style={{ width:4, background:'var(--success)', flexShrink:0 }} />
-                  <div style={{ display:'flex', alignItems:'center', flex:1, padding:'12px 14px', gap:12 }}>
-                    <div className="checkbox done" />
-                    <span style={{ fontSize:15, color:'var(--text-muted)', textDecoration:'line-through', flex:1 }}>{t.title}</span>
-                  </div>
+            <div className="section-label">Fullført — slettes om 3 sek ({done.length})</div>
+            {done.map(t => (
+              <div key={t.id} className="card" style={{ display:'flex', marginBottom:10, opacity:0.65 }}>
+                <div style={{ width:4, background:'var(--success)', flexShrink:0 }} />
+                <div style={{ display:'flex', alignItems:'center', flex:1, padding:'12px 14px', gap:12 }}
+                  onClick={() => toggleTask(t.id)}>
+                  <div className="checkbox done" />
+                  <span style={{ fontSize:15, color:'var(--text-muted)', textDecoration:'line-through', flex:1 }}>{t.title}</span>
                 </div>
-              )
-            })}
+                <div onClick={() => deleteTask(t.id)}
+                  style={{ display:'flex', alignItems:'center', justifyContent:'center', width:44, borderLeft:'1px solid var(--border-light)', cursor:'pointer', color:'var(--text-muted)', fontSize:18, flexShrink:0 }}>
+                  🗑️
+                </div>
+              </div>
+            ))}
           </>
         )}
 

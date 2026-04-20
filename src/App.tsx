@@ -21,6 +21,25 @@ export default function App() {
     return unsubscribe
   }, [])
 
+  useEffect(() => {
+    // Auto-sync Google Calendar hvis tidligere innlogget
+    const autoSync = async () => {
+      try {
+        const { signInWithGoogle, fetchGoogleCalendarEvents } = await import('@/utils/googleCalendar')
+        const success = await signInWithGoogle()
+        if (success) {
+          const events = await fetchGoogleCalendarEvents(30)
+          if (events.length > 0) {
+            await useStore.getState().addEventsFromVigilo(events)
+          }
+        }
+      } catch {
+        // Stille feil — bruker ikke innlogget
+      }
+    }
+    autoSync()
+  }, [])
+
   if (isLoading) {
     return (
       <div style={{ height:'100%', display:'flex', flexDirection:'column', alignItems:'center', justifyContent:'center', background:'var(--off-white)', gap:16 }}>
